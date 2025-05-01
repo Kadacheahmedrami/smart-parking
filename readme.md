@@ -155,5 +155,5 @@ This project is licensed under the MIT License. See [LICENSE](./LICENSE) for det
 
 ---
 
-> _Crafted with ❤️ for hackers, makers, and smart‑city enthusiasts!_
+> GG!_
 
