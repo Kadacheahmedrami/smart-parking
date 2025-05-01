@@ -1,161 +1,159 @@
-**ESP32 Parking Slot Monitor**
+**Smart Parking Slot Monitor 🚗🔍**
 
-![ESP32 Parking Monitor Banner](https://user-images.githubusercontent.com/your-repo/banner.png)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT) [![ESP32](https://img.shields.io/badge/Platform-ESP32-green)](https://www.espressif.com/en/products/socs/esp32) [![Built with React](https://img.shields.io/badge/Frontend-React-blue)](https://reactjs.org/) [![JSON API](https://img.shields.io/badge/API-JSON-orange)](#api)
 
-A compact, Wi-Fi‑enabled parking status monitor using an ESP32, six HC‑SR04 ultrasonic sensors, and LEDs to indicate occupied slots. Data is served as JSON via a built‑in web server.
-
----
-
-## 📋 Contents
-1. [Requirements](#requirements)
-2. [Pinout & Wiring](#pinout--wiring)
-3. [Mermaid Wiring Diagram](#mermaid-wiring-diagram)
-4. [Step-by‑Step Instructions](#step-by-step-instructions)
-5. [Web Interface & Testing](#web-interface--testing)
+> _"Revolutionizing urban parking with seamless IoT integration and real‑time monitoring!"_
 
 ---
 
-## Requirements
-- ESP32 development board (e.g., Wemos Lolin, DevKitC)
-- 6 × HC‑SR04 ultrasonic sensors
-- 6 × LEDs + resistors (220 Ω)
-- Jumper wires & breadboard (or perfboard)
-- 5V power supply for sensors; 3.3V for ESP32 logic
+## 📖 Table of Contents
+1. [✨ Overview](#✨-overview)
+2. [🛠️ Features](#️-features)
+3. [📦 Hardware Requirements](#-hardware-requirements)
+4. [📐 Wiring & Pinout](#-wiring--pinout)
+5. [⚙️ Software Setup](#️-software-setup)
+   - ESP32 Firmware
+   - React Dashboard
+6. [🔧 Installation & Usage](#-installation--usage)
+7. [🌐 Web API & JSON Format](#-web-api--json-format)
+8. [🗺️ Architecture Diagram](#️-architecture-diagram)
+9. [👨‍💻 Contributing](#-contributing)
+10. [📄 License](#-license)
 
 ---
 
-## Pinout & Wiring
-
-| Slot | Sensor Trigger | Sensor Echo | LED Pin (GPIO) |
-|:----:|:--------------:|:-----------:|:--------------:|
-| 1    | 13             | 12          | 2              |
-| 2    | 14             | 27          | 4              |
-| 3    | 26             | 25          | 15             |
-| 4    | 33             | 32          | 16             |
-| 5    | 5              | 18          | 17             |
-| 6    | 19             | 21          | 22             |
+## ✨ Overview
+A compact, Wi‑Fi enabled smart parking monitor built on the ESP32, equipped with six HC‑SR04 ultrasonic sensors and intuitive LEDs. It serves real‑time parking slot data as JSON and integrates seamlessly with a React front‑end dashboard for live visualization.
 
 ---
 
-## Mermaid Wiring Diagram
+## 🛠️ Features
+- **Real‑time Monitoring**: Polls every second via HTTP GET
+- **Sensor Autodetect**: Detects which ultrasonic sensors are attached
+- **Visual Indicators**: On‑board LEDs show occupancy status
+- **Rich Front‑end**: React + Framer Motion dashboard with animated status cards
+- **Resilient**: Handles sensor disconnects and network failures gracefully
+- **Extensible**: JSON API for integration with Node‑RED, Home Assistant, etc.
+
+---
+
+## 📦 Hardware Requirements
+| Component              | Quantity | Notes                     |
+|------------------------|:--------:|---------------------------|
+| ESP32 Dev Board        |    1     | Wemos Lolin, DevKitC, etc |
+| HC‑SR04 Ultrasonic     |    6     | Sensor range 2–400 cm     |
+| LEDs + 220 Ω Resistors |    6     | Any color                 |
+| Breadboard & Jumper Wires | —     | For prototyping           |
+| Power Supply           | 5 V @ 1 A | For sensors; 3.3 V for ESP|
+
+---
+
+## 📐 Wiring & Pinout
+| Slot | TRIG (GPIO) | ECHO (GPIO) | LED (GPIO) |
+|:----:|:-----------:|:-----------:|:----------:|
+| 1    | 13          | 12          | 2          |
+| 2    | 14          | 27          | 4          |
+| 3    | 26          | 25          | 15         |
+| 4    | 33          | 32          | 16         |
+| 5    | 5           | 18          | 17         |
+| 6    | 19          | 21          | 22         |
+
+<details>
+<summary>Mermaid Diagram</summary>
+
 ```mermaid
-flowchart TB
-  subgraph ESP32
-    A13[GPIO 13 TRIG1]
-    A12[GPIO 12 ECHO1]
-    A14[GPIO 14 TRIG2]
-    A27[GPIO 27 ECHO2]
-    A26[GPIO 26 TRIG3]
-    A25[GPIO 25 ECHO3]
-    A33[GPIO 33 TRIG4]
-    A32[GPIO 32 ECHO4]
-    A5[GPIO 5 TRIG5]
-    A18[GPIO 18 ECHO5]
-    A19[GPIO 19 TRIG6]
-    A21[GPIO 21 ECHO6]
-    L2[GPIO 2 LED1]
-    L4[GPIO 4 LED2]
-    L15[GPIO 15 LED3]
-    L16[GPIO 16 LED4]
-    L17[GPIO 17 LED5]
-    L22[GPIO 22 LED6]
+flowchart LR
+  subgraph Unit1[Slot 1]
+    T1(TRIG GPIO13) -->|Pulse| HC1((HC-SR04))
+    HC1 -->|Echo| E1(ECHO GPIO12)
+    LED1[LED @ GPIO2]
+    HC1 -->|Detect| LED1
   end
+  %% Repeat for all six
+```
+</details>
 
-  subgraph Slot1[Slot 1]
-    HC1Trig[TRIG]
-    HC1Echo[ECHO]
-    LED1(LED)
-  end
-  HC1Trig --> A13
-  HC1Echo --> A12
-  LED1 --> L2
+---
 
-  subgraph Slot2[Slot 2]
-    HC2Trig[TRIG]
-    HC2Echo[ECHO]
-    LED2(LED)
-  end
-  HC2Trig --> A14
-  HC2Echo --> A27
-  LED2 --> L4
+## ⚙️ Software Setup
 
-  subgraph Slot3[Slot 3]
-    HC3Trig[TRIG]
-    HC3Echo[ECHO]
-    LED3(LED)
-  end
-  HC3Trig --> A26
-  HC3Echo --> A25
-  LED3 --> L15
+### ESP32 Firmware
+1. Clone this repo.
+2. Open `SmartParking.ino` in Arduino IDE or PlatformIO.
+3. Adjust `ssid`, `pass`, and pin arrays if needed.
+4. Flash to ESP32 at 115200 baud.
+5. Open Serial Monitor to view detected sensors and IP address.
 
-  subgraph Slot4[Slot 4]
-    HC4Trig[TRIG]
-    HC4Echo[ECHO]
-    LED4(LED)
-  end
-  HC4Trig --> A33
-  HC4Echo --> A32
-  LED4 --> L16
+### React Dashboard
+1. Navigate to `/web-dashboard` folder.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start dev server:
+   ```bash
+   npm run dev
+   ```
+4. Enter ESP32 IP when prompted and watch slots animate live.
 
-  subgraph Slot5[Slot 5]
-    HC5Trig[TRIG]
-    HC5Echo[ECHO]
-    LED5(LED)
-  end
-  HC5Trig --> A5
-  HC5Echo --> A18
-  LED5 --> L17
+---
 
-  subgraph Slot6[Slot 6]
-    HC6Trig[TRIG]
-    HC6Echo[ECHO]
-    LED6(LED)
+## 🔧 Installation & Usage
+1. Wire hardware as per the pinout above.
+2. Power on ESP32 and sensors.
+3. Flash firmware and connect ESP to Wi‑Fi.
+4. Note the IP printed in Serial Monitor.
+5. Launch dashboard and input IP.
+6. Enjoy real‑time parking visualization!
+
+---
+
+## 🌐 Web API & JSON Format
+**Endpoint:** `http://<ESP32_IP>/`
+
+```json
+{
+  "type": "parking_status",
+  "slots": [
+    { "id": 1, "occupied": true, "distance_cm": 32.5 },
+    { "id": 2, "occupied": false, "distance_cm": 120.1 },
+    …
+  ]
+}
+```
+
+- **id**: Slot number (1–6)
+- **occupied**: `true` if distance < 50 cm
+- **distance_cm**: Measured distance (−1 if no sensor)
+
+---
+
+## 🗺️ Architecture Diagram
+```mermaid
+flowchart TD
+  ESP32[ESP32 MCU]
+  subgraph Sensors
+    HC1 & HC2 & HC3 & HC4 & HC5 & HC6
   end
-  HC6Trig --> A19
-  HC6Echo --> A21
-  LED6 --> L22
+  ESP32 --> Sensors
+  ESP32 -->|Wi‑Fi| Router[Wi‑Fi Router]
+  Router -->|HTTP GET| Browser[React Dashboard]
 ```
 
 ---
 
-## Step-by‑Step Instructions
-1. **Power Rails:**
-   - Connect ESP32 `3.3V` pin to sensor `Vcc` and LED anodes via resistors.
-   - Connect ESP32 `GND` to sensors `GND` and LED cathodes.
-2. **Sensor Wiring:**
-   - For each slot, wire the HC‑SR04 `TRIG` to the ESP32 trigger GPIO.
-   - Wire the HC‑SR04 `ECHO` to the ESP32 echo GPIO (use `INPUT_PULLDOWN`).
-3. **LED Wiring:**
-   - Place a 220 Ω resistor in series with each LED.
-   - Connect the resistor output to the LED anode; LED cathode goes to ESP32 `GND`.
-   - Drive the LED’s resistor input from its corresponding ESP32 GPIO.
-4. **Double‑check:**
-   - TRIG pins must be `OUTPUT`, ECHO pins `INPUT_PULLDOWN`.
-   - LEDs must light only when slot is occupied (<50 cm distance).
-5. **Deploy Code:**
-   - Flash the provided `*.ino` sketch.
-   - Open serial monitor at 115200 baud to verify sensor detection and IP address.
-6. **Test Web Server:**
-   - Visit `http://<ESP32_IP>/` every second to view JSON status.
-   - Confirm LEDs toggle according to occupancy.
+## 👨‍💻 Contributing
+Contributions are welcome! Please:
+1. Fork the repo.
+2. Create a feature branch.
+3. Submit a PR with clear description.
 
 ---
 
-## Web Interface & Testing
-- JSON structure:
-  ```json
-  {
-    "type": "parking_status",
-    "slots": [
-      { "id":1, "occupied":true, "distance_cm":32.5 },
-      …
-    ]
-  }
-  ```
-- Use any REST client or browser to poll the endpoint.
-- Integrate with a dashboard (e.g., Node-RED, Home Assistant).
+## 📄 License
+This project is licensed under the MIT License. See [LICENSE](./LICENSE) for details.
 
 ---
 
-Feel free to contribute improvements or file issues in the repository!
+> _Crafted with ❤️ for hackers, makers, and smart‑city enthusiasts!_
 
