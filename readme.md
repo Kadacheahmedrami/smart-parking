@@ -1,6 +1,6 @@
 **Smart Parking Slot Monitor 🚗🔍**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT) [![ESP32](https://img.shields.io/badge/Platform-ESP32-green)](https://www.espressif.com/en/products/socs/esp32) [![Built with React](https://img.shields.io/badge/Frontend-React-blue)](https://reactjs.org/) [![JSON API](https://img.shields.io/badge/API-JSON-orange)](#api)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT) [![ESP32](https://img.shields.io/badge/Platform-ESP32-green)](https://www.espressif.com/en/products/socs/esp32) [![Built with Next](https://img.shields.io/badge/Frontend-Next-blue)](https://Nextjs.org/) [![JSON API](https://img.shields.io/badge/API-JSON-orange)](#api)
 
 > _"Revolutionizing urban parking with seamless IoT integration and real‑time monitoring!"_
 
@@ -13,7 +13,7 @@
 4. [📐 Wiring & Pinout](#-wiring--pinout)
 5. [⚙️ Software Setup](#️-software-setup)
    - ESP32 Firmware
-   - React Dashboard
+   - NextJs Dashboard
 6. [🔧 Installation & Usage](#-installation--usage)
 7. [🌐 Web API & JSON Format](#-web-api--json-format)
 8. [🗺️ Architecture Diagram](#️-architecture-diagram)
@@ -23,7 +23,7 @@
 ---
 
 ## ✨ Overview
-A compact, Wi‑Fi enabled smart parking monitor built on the ESP32, equipped with six HC‑SR04 ultrasonic sensors and intuitive LEDs. It serves real‑time parking slot data as JSON and integrates seamlessly with a React front‑end dashboard for live visualization.
+A compact, Wi‑Fi enabled smart parking monitor built on the ESP32, equipped with six HC‑SR04 ultrasonic sensors and intuitive LEDs. It serves real‑time parking slot data as JSON and integrates seamlessly with a NextJs front‑end dashboard for live visualization.
 
 ---
 
@@ -31,7 +31,7 @@ A compact, Wi‑Fi enabled smart parking monitor built on the ESP32, equipped wi
 - **Real‑time Monitoring**: Polls every second via HTTP GET
 - **Sensor Autodetect**: Detects which ultrasonic sensors are attached
 - **Visual Indicators**: On‑board LEDs show occupancy status
-- **Rich Front‑end**: React + Framer Motion dashboard with animated status cards
+- **Rich Front‑end**: NextJs + Framer Motion dashboard with animated status cards
 - **Resilient**: Handles sensor disconnects and network failures gracefully
 - **Extensible**: JSON API for integration with Node‑RED, Home Assistant, etc.
 
@@ -84,7 +84,7 @@ flowchart LR
 4. Flash to ESP32 at 115200 baud.
 5. Open Serial Monitor to view detected sensors and IP address.
 
-### React Dashboard
+### Next Dashboard
 1. Navigate to `/web-dashboard` folder.
 2. Install dependencies:
    ```bash
@@ -137,7 +137,7 @@ flowchart TD
   end
   ESP32 --> Sensors
   ESP32 -->|Wi‑Fi| Router[Wi‑Fi Router]
-  Router -->|HTTP GET| Browser[React Dashboard]
+  Router -->|HTTP GET| Browser[NextJs Dashboard]
 ```
 
 ---
