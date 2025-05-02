@@ -13,8 +13,8 @@
 // Configuration
 namespace Config {
   // Wi-Fi credentials
-  constexpr char WIFI_SSID[] = "rami";
-  constexpr char WIFI_PASS[] = "ramirami";
+  constexpr char WIFI_SSID[] = "wifi-name";
+  constexpr char WIFI_PASS[] = "wifi-password";
   
   // Web server port
   constexpr int SERVER_PORT = 80;
