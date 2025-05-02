@@ -4,6 +4,7 @@
 
 > _"Revolutionizing urban parking with seamless IoT integration and real‑time monitoring!"_
 
+![Image](https://github.com/user-attachments/assets/4c4c6906-0891-4dfa-bbed-1ce9b330cb96)
 ---
 
 ## 📖 Table of Contents
