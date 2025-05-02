@@ -90,7 +90,7 @@ export default function Dashboard() {
 
   const isConnected = !!espIp && !lastError
 
-  // Determine slot status, including disconnection
+  // Determine slot status, including disconnection and danger
   const getSlotStatus = (slot: Slot) => {
     const now = Date.now()
     if (slot.distance !== null && slot.distance < 0) {
@@ -106,6 +106,12 @@ export default function Dashboard() {
       // reset if valid distance
       delete disconnectTimestamps.current[slot.slotId]
     }
+    
+    // Check for danger zone (distance between 1 and 5 cm)
+    if (slot.distance !== null && slot.distance >= 1 && slot.distance <= 5) {
+      return 'danger'
+    }
+    
     return slot.occupied ? 'occupied' : 'vacant'
   }
 
@@ -195,17 +201,24 @@ export default function Dashboard() {
             {slots.map((slot) => {
               const status = getSlotStatus(slot)
               const isDisconnected = status === 'disconnected'
+              const isDanger = status === 'danger'
               return (
                 <motion.div
                   key={slot.slotId}
                   layout
                   initial={{ opacity: 0.8 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.2 }}
+                  animate={{ 
+                    opacity: 1
+                  }}
+                  transition={{ 
+                    duration: 0.2
+                  }}
                   className={cn(
-                    "relative rounded-xl p-6 shadow-xl bg-white dark:bg-gray-800 transition-colors",
+                    "relative rounded-xl p-6 shadow-xl  dark:bg-gray-800 transition-colors",
                     isDisconnected
-                      ? "border-2 border-black  "
+                      ? "border-2 border-black"
+                      : isDanger
+                      ? "border-2 border-yellow-500 bg-red-600 text-white"
                       : status === "occupied"
                       ? "border-2 border-red-400"
                       : "border-2 border-emerald-400"
@@ -218,6 +231,8 @@ export default function Dashboard() {
                         "w-4 h-4 rounded-full",
                         isDisconnected
                           ? "bg-black"
+                          : isDanger
+                          ? "bg-white"
                           : status === "occupied"
                           ? "bg-red-500"
                           : "bg-emerald-500"
@@ -230,6 +245,8 @@ export default function Dashboard() {
                         "mr-2 h-5 w-5",
                         isDisconnected
                           ? ""
+                          : isDanger
+                          ? ""
                           : status === "occupied"
                           ? "text-red-500"
                           : "text-emerald-500"
@@ -240,11 +257,27 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div className="flex items-center">
-                    <MapPin className={cn("mr-2 h-5 w-5", isDisconnected ? "" : "text-gray-500")} />
-                    <span className={cn("text-sm", isDisconnected ? "" : "text-gray-600")}>                  
+                    <MapPin className={cn(
+                      "mr-2 h-5 w-5", 
+                      isDisconnected 
+                        ? "" 
+                        : isDanger 
+                        ? "" 
+                        : "text-gray-500"
+                    )} />
+                    <span className={cn(
+                      "text-sm", 
+                      isDisconnected 
+                        ? "" 
+                        : isDanger 
+                        ? " font-semibold" 
+                        : "text-gray-600"
+                    )}>                  
                       Distance: {isDisconnected || slot.distance === null ? "N/A" : `${slot.distance.toFixed(1)} cm`}
                     </span>
                   </div>
+                  
+                  {/* No danger message */}
                 </motion.div>
               )
             })}
@@ -257,7 +290,7 @@ export default function Dashboard() {
             </p>
             <Button
               onClick={() => setShowSetupModal(true)}
-              className="mt-4 bg-gradient-to-r from-teal-400 to-emerald-400 text-white.hover:from-teal-500 hover:to-emerald-500"
+              className="mt-4 bg-gradient-to-r from-teal-400 to-emerald-400 text-white hover:from-teal-500 hover:to-emerald-500"
             >
               Set ESP32 IP
             </Button>
@@ -272,7 +305,7 @@ export default function Dashboard() {
           if (!espIp) {
             toast({
               title: "IP Required",
-              description: "Enter your ESP32’s IP address to proceed.",
+              description: "Enter your ESP32's IP address to proceed.",
               variant: "destructive",
             })
           } else {
