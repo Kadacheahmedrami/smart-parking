@@ -38,7 +38,7 @@ export default function Dashboard() {
   const router = useRouter()
 
 
-
+//gg
   // Polling hook
   const { parkingSlots: slots, lastError, start, stop } = useHttpPolling("https://cologne-mutual-carnival-constantly.trycloudflare.com")
   const [isLoading, setIsLoading] = useState(false)
