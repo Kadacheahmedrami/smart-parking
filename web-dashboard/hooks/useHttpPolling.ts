@@ -39,7 +39,7 @@ export function useHttpPolling(initialServerAddress = ""): HttpPollingReturn {
 
       // Use HTTP for IP addresses and HTTPS for domains
       const protocol = isIpAddress(address) ? "http" : "https";
-      const resp = await fetch(`https://cologne-mutual-carnival-constantly.trycloudflare.com`);
+      const resp = await fetch(`${protocol}://${address}/`);
       
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data = await resp.json();

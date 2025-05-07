@@ -37,28 +37,17 @@ interface Slot {
 export default function Dashboard() {
   const router = useRouter()
 
-  // ESP32 IP & setup modal
-  const [espIp, setEspIp] = useState<string>("")
-  const [showSetupModal, setShowSetupModal] = useState(false)
+
 
   // Polling hook
-  const { parkingSlots: slots, lastError, start, stop } = useHttpPolling(espIp)
+  const { parkingSlots: slots, lastError, start, stop } = useHttpPolling("https://cologne-mutual-carnival-constantly.trycloudflare.com")
   const [isLoading, setIsLoading] = useState(false)
 
   // Track negative distance timestamps
   const disconnectTimestamps = useRef<Record<number, number>>({})
 
   // Load saved ESP IP on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("esp_ip")
-    if (saved) {
-      setEspIp(saved)
-      start(saved)
-      setIsLoading(true)
-    } else {
-      setShowSetupModal(true)
-    }
-  }, [start])
+
 
   // Show errors as toast
   useEffect(() => {
@@ -74,21 +63,7 @@ export default function Dashboard() {
     }
   }, [lastError])
 
-  const handleChangeEspIp = () => setShowSetupModal(true)
-
-  const handleSetupEsp = (ip: string) => {
-    localStorage.setItem("esp_ip", ip)
-    setEspIp(ip)
-    setShowSetupModal(false)
-    toast({
-      title: "Starting polling",
-      description: `http://${ip}/ every 1s`,
-    })
-    start(ip)
-    setIsLoading(true)
-  }
-
-  const isConnected = !!espIp && !lastError
+  
 
   // Determine slot status, including disconnection and danger
   const getSlotStatus = (slot: Slot) => {
@@ -126,27 +101,11 @@ export default function Dashboard() {
               Smart Parking Dashboard
             </h1>
             <div className="flex items-center justify-center md:justify-start gap-2 text-gray-600 dark:text-gray-400">
-              <p className="font-medium">
-                {isConnected
-                  ? `Polling http://${espIp}/ every 1s`
-                  : "Not connected"}
-              </p>
-              {isConnected ? <Wifi className="text-green-500" /> : <WifiOff className="animate-pulse text-red-500" />}
+          
             </div>
           </div>
           <div className="flex items-end justify-end md:items-center  gap-3">
-            {!isConnected && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowSetupModal(true)}
-                className="flex items-center gap-1"
-              >
-                <Wifi className="h-4 w-4" />
-                Connect
-              </Button>
-            )}
-
+            
             <Button
               variant="outline"
               size="sm"
@@ -167,21 +126,7 @@ export default function Dashboard() {
                 align="end"
                 className="z-50 w-48 rounded-2xl bg-white dark:bg-gray-800 shadow-2xl border border-gray-200 dark:border-gray-700 py-2"
               >
-                <DropdownMenuItem
-                  onClick={handleChangeEspIp}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition cursor-pointer"
-                >
-                  <Settings className="h-4 w-4 text-teal-500" />
-                  Change ESP32 IP
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="my-1 bg-gray-200 dark:bg-gray-700" />
-                {espIp && (
-                  <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
-                    <p className="font-semibold">Current ESP32:</p>
-                    <p>{espIp}</p>
-                  </div>
-                )}
-              </DropdownMenuContent>
+            </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </header>
@@ -196,7 +141,7 @@ export default function Dashboard() {
         )}
 
         {/* Parking grid */}
-        {isConnected ? (
+        { (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
             {slots.map((slot) => {
               const status = getSlotStatus(slot)
@@ -282,39 +227,10 @@ export default function Dashboard() {
               )
             })}
           </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-16">
-            <WifiOff className="h-12 w-12 text-gray-400 mb-4" />
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              Please connect to your ESP32 to view slots
-            </p>
-            <Button
-              onClick={() => setShowSetupModal(true)}
-              className="mt-4 bg-gradient-to-r from-teal-400 to-emerald-400 text-white hover:from-teal-500 hover:to-emerald-500"
-            >
-              Set ESP32 IP
-            </Button>
-          </div>
-        )}
+        ) }
       </div>
 
       {/* ESP IP setup dialog */}
-      <ConnectionSetupModal
-        isOpen={showSetupModal}
-        onClose={() => {
-          if (!espIp) {
-            toast({
-              title: "IP Required",
-              description: "Enter your ESP32's IP address to proceed.",
-              variant: "destructive",
-            })
-          } else {
-            setShowSetupModal(false)
-          }
-        }}
-        onSave={handleSetupEsp}
-        initialValue={espIp}
-      />
-    </div>
+        </div>
   )
 }
