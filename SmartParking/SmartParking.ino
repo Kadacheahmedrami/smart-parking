@@ -6,15 +6,14 @@
  */
 
 #include <WiFi.h>
-
-#include "ESPExpress.h"
+#include <WebServer.h>
 #include <ArduinoJson.h>
 
 // Configuration
 namespace Config {
   // Wi-Fi credentials
-  constexpr char WIFI_SSID[] = "wifi-name";
-  constexpr char WIFI_PASS[] = "wifi-password";
+  constexpr char WIFI_SSID[] = "Zeeey";
+  constexpr char WIFI_PASS[] = "bXlq9705";
   
   // Web server port
   constexpr int SERVER_PORT = 80;
@@ -37,7 +36,7 @@ namespace Config {
 }
 
 // Global objects
-ESPExpress app(Config::SERVER_PORT);
+WebServer server(Config::SERVER_PORT);
 
 // System state
 struct ParkingSystem {
@@ -201,27 +200,22 @@ struct ParkingSystem {
 ParkingSystem parkingSystem;
 
 /**
- * Setup web routes for the parking system
+ * Handler for root endpoint - returns parking status
  */
-void setupRoutes() {
-  // Enable CORS for web clients
-  app.enableCORS("*");
+void handleRoot() {
+  String jsonData = parkingSystem.generateStatusJson();
   
-  // Handle OPTIONS requests for CORS preflight
-  app.options("/*", [](Request& req, Response& res) {
-    res.status(204)
-       .setHeader("Access-Control-Allow-Methods", "GET,OPTIONS")
-       .end();
-  });
-  
-  // Main route to get parking status
-  app.get("/", [](Request &req, Response &res) {
-    String jsonData = parkingSystem.generateStatusJson();
-    
-    res.status(200)
-       .setHeader("Content-Type", "application/json")
-       .send(jsonData);
-  });
+  server.enableCORS(true);
+  server.send(200, "application/json", jsonData);
+}
+
+/**
+ * Handler for OPTIONS requests (CORS preflight)
+ */
+void handleOptions() {
+  server.enableCORS(true);
+  server.sendHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
+  server.send(204);
 }
 
 /**
@@ -249,13 +243,16 @@ void setup() {
   connectWiFi();
   
   // Setup web routes
-  setupRoutes();
+  server.on("/", HTTP_GET, handleRoot);
+  server.on("/", HTTP_OPTIONS, handleOptions);
   
   // Start web server
-  app.listen("Server started → GET / for parking status");
+  server.begin();
+  Serial.println("Server started → GET / for parking status");
 }
 
 void loop() {
-  // Main processing handled by web server
+  // Process incoming client requests
+  server.handleClient();
   delay(10);
 }
