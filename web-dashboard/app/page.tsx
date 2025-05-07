@@ -8,10 +8,8 @@ import {
   AlertTriangle,
   MapPin,
   Shield,
-  Settings,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { ConnectionSetupModal } from "@/components/connection-setup-modal"
 import { useHttpPolling } from "@/hooks/useHttpPolling"
 import { toast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
@@ -19,13 +17,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@radix-ui/react-dropdown-menu"
+
+// Fixed URL for polling
+const FIXED_API_URL = "https://cologne-mutual-carnival-constantly.trycloudflare.com"
 
 // Simplified slot type
 interface Slot {
@@ -37,17 +31,18 @@ interface Slot {
 export default function Dashboard() {
   const router = useRouter()
 
-
-//gg
   // Polling hook
-  const { parkingSlots: slots, lastError, start, stop } = useHttpPolling("https://cologne-mutual-carnival-constantly.trycloudflare.com")
+  const { parkingSlots: slots, lastError, start, stop } = useHttpPolling(FIXED_API_URL)
   const [isLoading, setIsLoading] = useState(false)
 
   // Track negative distance timestamps
   const disconnectTimestamps = useRef<Record<number, number>>({})
 
-  // Load saved ESP IP on mount
-
+  // Start polling on mount
+  useEffect(() => {
+    start(FIXED_API_URL)
+    setIsLoading(true)
+  }, [start])
 
   // Show errors as toast
   useEffect(() => {
@@ -63,7 +58,7 @@ export default function Dashboard() {
     }
   }, [lastError])
 
-  
+  const isConnected = !lastError
 
   // Determine slot status, including disconnection and danger
   const getSlotStatus = (slot: Slot) => {
@@ -101,11 +96,15 @@ export default function Dashboard() {
               Smart Parking Dashboard
             </h1>
             <div className="flex items-center justify-center md:justify-start gap-2 text-gray-600 dark:text-gray-400">
-          
+              <p className="font-medium">
+                {isConnected
+                  ? `Connected to API`
+                  : "Connection error"}
+              </p>
+              {isConnected ? <Wifi className="text-green-500" /> : <WifiOff className="animate-pulse text-red-500" />}
             </div>
           </div>
-          <div className="flex items-end justify-end md:items-center  gap-3">
-            
+          <div className="flex items-end justify-end md:items-center gap-3">
             <Button
               variant="outline"
               size="sm"
@@ -115,19 +114,6 @@ export default function Dashboard() {
               <Shield className="h-4 w-4" />
               Admin
             </Button>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="hover:bg-gray-200 dark:hover:bg-gray-700 transition">
-                  <Settings className="h-5 w-5 text-gray-700 dark:text-gray-200" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="z-50 w-48 rounded-2xl bg-white dark:bg-gray-800 shadow-2xl border border-gray-200 dark:border-gray-700 py-2"
-              >
-            </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </header>
 
@@ -141,7 +127,7 @@ export default function Dashboard() {
         )}
 
         {/* Parking grid */}
-        { (
+        {isConnected ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
             {slots.map((slot) => {
               const status = getSlotStatus(slot)
@@ -159,7 +145,7 @@ export default function Dashboard() {
                     duration: 0.2
                   }}
                   className={cn(
-                    "relative rounded-xl p-6 shadow-xl  dark:bg-gray-800 transition-colors",
+                    "relative rounded-xl p-6 shadow-xl dark:bg-gray-800 transition-colors",
                     isDisconnected
                       ? "border-2 border-black"
                       : isDanger
@@ -221,16 +207,33 @@ export default function Dashboard() {
                       Distance: {isDisconnected || slot.distance === null ? "N/A" : `${slot.distance.toFixed(1)} cm`}
                     </span>
                   </div>
-                  
-                  {/* No danger message */}
                 </motion.div>
               )
             })}
           </div>
-        ) }
+        ) : (
+          <div className="flex flex-col items-center justify-center py-16">
+            <WifiOff className="h-12 w-12 text-gray-400 mb-4" />
+            <p className="text-lg text-gray-600 dark:text-gray-400">
+              Having trouble connecting to the API
+            </p>
+            <Button
+              onClick={() => {
+                stop()
+                start(FIXED_API_URL)
+                setIsLoading(true)
+                toast({
+                  title: "Reconnecting",
+                  description: "Attempting to reconnect to the API"
+                })
+              }}
+              className="mt-4 bg-gradient-to-r from-teal-400 to-emerald-400 text-white hover:from-teal-500 hover:to-emerald-500"
+            >
+              Retry Connection
+            </Button>
+          </div>
+        )}
       </div>
-
-      {/* ESP IP setup dialog */}
-        </div>
+    </div>
   )
 }
